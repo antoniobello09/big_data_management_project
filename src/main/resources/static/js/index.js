@@ -26,8 +26,7 @@ var I_CAN_STOP = 1;
 var I_AM_STARTING = 2;
 
 window.onload = function() {
-	console.log("Page loaded ...");
-	console = new Console('console', console);
+	console = new Console();
 	video = document.getElementById('video');
 	setState(I_CAN_START);
 }
