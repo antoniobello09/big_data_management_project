@@ -17,7 +17,6 @@
 
 var ws = new WebSocket('wss://' + location.host + '/player');
 var video;
-var webRtcPeer;
 var state = null;
 var isSeekable = false;
 
@@ -40,9 +39,6 @@ ws.onmessage = function(message) {
 	console.info('Received message: ' + message.data);
 
 	switch (parsedMessage.id) {
-	case 'startResponse':
-		startResponse(parsedMessage);
-		break;
 	case 'plateDetected':
 		plateDetected(parsedMessage);
 		break;	
@@ -51,26 +47,6 @@ ws.onmessage = function(message) {
 			setState(I_CAN_START);
 		}
 		onError('Error message from server: ' + parsedMessage.message);
-		break;
-	case 'playEnd':
-		playEnd();
-		break;
-	case 'videoInfo':
-		showVideoData(parsedMessage);
-		break;
-	case 'iceCandidate':
-		webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
-			if (error)
-				return console.error('Error adding candidate: ' + error);
-		});
-		break;
-	case 'seek':
-		console.log (parsedMessage.message);
-		break;
-	case 'position':
-		document.getElementById("videoPosition").value = parsedMessage.position;
-		break;
-	case 'iceCandidate':
 		break;
 	default:
 		if (state == I_AM_STARTING) {
@@ -82,76 +58,32 @@ ws.onmessage = function(message) {
 
 function start() {
 	// Disable start button
-	setState(I_AM_STARTING);
+	setState(I_CAN_STOP);
 	showSpinner(video);
+	console.log("Dajeeeee");
 
-	var mode = $('input[name="mode"]:checked').val();
-	console.log('Creating WebRtcPeer in ' + mode + ' mode and generating local sdp offer ...');
+	// Ottenere l'URL del video dall'input
+	const videoUrl = document.getElementById('videourl').value;
 
-	// Video and audio by default
-	var userMediaConstraints = {
-		audio : true,
-		video : true
-	}
+	// Impostare la sorgente del video con l'URL specificato
+	video.src = videoUrl;
 
-	if (mode == 'video-only') {
-		userMediaConstraints.audio = false;
-	} else if (mode == 'audio-only') {
-		userMediaConstraints.video = false;
-	}
-
-	var options = {
-		remoteVideo : video,
-		mediaConstraints : userMediaConstraints,
-		onicecandidate : onIceCandidate
-	}
-
-	console.info('User media constraints' + userMediaConstraints);
-
-	webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
-			function(error) {
-				if (error)
-					return console.error(error);
-				webRtcPeer.generateOffer(onOffer);
-			});
-}
-
-function onOffer(error, offerSdp) {
-	if (error)
-		return console.error('Error generating the offer');
-	console.info('Invoking SDP offer callback function ' + location.host);
+	// Avviare la riproduzione del video
+	video.play();
 
 	var message = {
 		id : 'start',
-		sdpOffer : offerSdp,
-		videourl : document.getElementById('videourl').value
+		videourl : videoUrl
 	}
+
 	sendMessage(message);
 }
+
 
 function onError(error) {
 	console.error(error);
 }
 
-function onIceCandidate(candidate) {
-	console.log('Local candidate' + JSON.stringify(candidate));
-
-	var message = {
-		id : 'onIceCandidate',
-		candidate : candidate
-	}
-	sendMessage(message);
-}
-
-function startResponse(message) {
-	setState(I_CAN_STOP);
-	console.log('SDP answer received from server. Processing ...');
-
-	webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
-		if (error)
-			return console.error(error);
-	});
-}
 
 function plateDetected(message) {
 	console.log("License plate detected " + message.plate);
@@ -164,6 +96,8 @@ function pause() {
 		id : 'pause'
 	}
 	sendMessage(message);
+	video.pause();
+	
 }
 
 function resume() {
@@ -173,66 +107,20 @@ function resume() {
 		id : 'resume'
 	}
 	sendMessage(message);
+	video.play();
 }
 
 function stop() {
 	console.log('Stopping video ...');
 	setState(I_CAN_START);
-	if (webRtcPeer) {
-		webRtcPeer.dispose();
-		webRtcPeer = null;
-
-		var message = {
-			id : 'stop'
-		}
-		sendMessage(message);
+	var message = {
+		id : 'stop'
 	}
+	sendMessage(message);
+	video.load();
 	hideSpinner(video);
 }
 
-function debugDot() {
-	console.log('Generate debug DOT file ...');
-	sendMessage({
-		id: 'debugDot'
-	});
-}
-
-function playEnd() {
-	setState(I_CAN_START);
-	hideSpinner(video);
-}
-
-function doSeek() {
-	var message = {
-		id : 'doSeek',
-		position: document.getElementById("seekPosition").value
-	}
-	sendMessage(message);
-}
-
-function getPosition() {
-	var message = {
-		id : 'getPosition'
-	}
-	sendMessage(message);
-}
-
-function showVideoData(parsedMessage) {
-	//Show video info
-	isSeekable = parsedMessage.isSeekable;
-	if (isSeekable) {
-		document.getElementById('isSeekable').value = "true";
-		enableButton('#doSeek', 'doSeek()');
-	} else {
-		document.getElementById('isSeekable').value = "false";
-	}
-
-	document.getElementById('initSeek').value = parsedMessage.initSeekable;
-	document.getElementById('endSeek').value = parsedMessage.endSeekable;
-	document.getElementById('duration').value = parsedMessage.videoDuration;
-
-	enableButton('#getPosition', 'getPosition()');
-}
 
 function setState(nextState) {
 	switch (nextState) {
@@ -240,31 +128,21 @@ function setState(nextState) {
 		enableButton('#start', 'start()');
 		disableButton('#pause');
 		disableButton('#stop');
-		disableButton('#debugDot');
 		enableButton('#videourl');
-		enableButton("[name='mode']");
-		disableButton('#getPosition');
-		disableButton('#doSeek');
 		break;
 
 	case I_CAN_STOP:
 		disableButton('#start');
 		enableButton('#pause', 'pause()');
 		enableButton('#stop', 'stop()');
-		enableButton('#debugDot', 'debugDot()');
 		disableButton('#videourl');
-		disableButton("[name='mode']");
 		break;
 
 	case I_AM_STARTING:
 		disableButton('#start');
 		disableButton('#pause');
 		disableButton('#stop');
-		disableButton('#debugDot');
 		disableButton('#videourl');
-		disableButton('#getPosition');
-		disableButton('#doSeek');
-		disableButton("[name='mode']");
 		break;
 
 	default:
@@ -322,8 +200,9 @@ function hideSpinner() {
 
 /**
  * Lightbox utility (to display media pipeline image in a modal dialog)
- */
+ 
 $(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) {
 	event.preventDefault();
 	$(this).ekkoLightbox();
 });
+*/
