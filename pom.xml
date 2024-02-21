@@ -12,8 +12,8 @@
 	<packaging>jar</packaging>
 
 	<!-- Project-level information -->
-	<name>Kurento Java Tutorial - Player</name>
-	<description>Play of a video through WebRTC</description>
+	<name>big-data-management project</name>
+	<description>The project for the big-data-management exam</description>
 
 	<!-- Project configuration -->
 
