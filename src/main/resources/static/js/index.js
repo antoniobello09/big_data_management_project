@@ -32,11 +32,14 @@ ws.onmessage = function(message) {
 		}
 		onError('Error message from server: ' + parsedMessage.message);
 		break;
+	case 'playEnd':
+		setState(I_CAN_START);
+		break;
 	default:
 		if (state == I_AM_STARTING) {
 			setState(I_CAN_START);
 		}
-		onError('Unrecognized message', parsedMessage);
+		onError('Unrecognized message' + parsedMessage.id);
 	}
 }
 
@@ -44,7 +47,6 @@ function start() {
 	// Disable start button
 	setState(I_CAN_STOP);
 	showSpinner(video);
-	console.log("Dajeeeee");
 
 	// Ottenere l'URL del video dall'input
 	const videoUrl = document.getElementById('videourl').value;
