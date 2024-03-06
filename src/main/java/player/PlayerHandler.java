@@ -3,7 +3,10 @@ package player;
 
 import client.*;
 import client.api.EntitiesApi;
+import client.api.SubscriptionsApi;
 import client.model.CreateEntityRequest;
+import client.model.CreateSubscriptionRequest;
+import client.model.UpdateExistingEntityAttributesRequest;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +34,7 @@ import com.google.gson.JsonObject;
 
 public class PlayerHandler extends TextWebSocketHandler {
 
-  private int i=2;
+  private int i=0;
 
   @Autowired
   private KurentoClient kurento;
@@ -47,7 +50,7 @@ public class PlayerHandler extends TextWebSocketHandler {
   public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
     String sessionId = session.getId();
-
+    
     try {
       switch (jsonMessage.get("id").getAsString()) {
         case "start":
@@ -87,23 +90,34 @@ public class PlayerHandler extends TextWebSocketHandler {
     playerEndpoint.connect(plateDetectorFilter);
     //plateDetectorFilter.connect(webRtcEndpoint);
 
+    CreateEntityRequest createEntityRequest = new CreateEntityRequest();
+    createEntityRequest.setId("0200");
+    createEntityRequest.setType("Plate");
+    
+    createEntityRequest.setPlate("00000001");
+
+    try {
+      entitiesApi.createEntity( "application/json", createEntityRequest, "keyValues");
+    } catch (ApiException e) {
+      e.printStackTrace();
+    }
+
     plateDetectorFilter.addPlateDetectedListener(new EventListener<PlateDetectedEvent>() {
       @Override
       public void onEvent(PlateDetectedEvent event) {
         JsonObject response = new JsonObject();
         response.addProperty("id", "plateDetected");
         response.addProperty("plate", event.getPlate());
-        CreateEntityRequest createEntityRequest = new CreateEntityRequest();
-        createEntityRequest.setId("00" + i);
-        createEntityRequest.setType("Plate");
-        createEntityRequest.setPlate(new Plate("AA000TT" + i));
-        i++;
+
+        UpdateExistingEntityAttributesRequest updateExistingEntityAttributesRequest = new UpdateExistingEntityAttributesRequest();
+        updateExistingEntityAttributesRequest.setPlate(event.getPlate());
         try {
-          entitiesApi.createEntity( "application/json", createEntityRequest, "keyValues");
+          entitiesApi.updateExistingEntityAttributes("0200", "application/json", updateExistingEntityAttributesRequest, "Plate", "keyValues");
         } catch (ApiException e) {
           e.printStackTrace();
         }
 
+        i++;
         try {
           session.sendMessage(new TextMessage(response.toString()));
         } catch (Throwable t) {

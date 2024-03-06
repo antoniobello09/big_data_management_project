@@ -29,47 +29,28 @@ import java.io.IOException;
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2024-02-23T12:12:13.839+01:00")
 public class UpdateExistingEntityAttributesRequest {
-  @SerializedName("temperature")
-  private Object temperature = null;
+  @SerializedName("plate")
+  private String plate = null;
 
-  @SerializedName("seatNumber")
-  private Object seatNumber = null;
-
-  public UpdateExistingEntityAttributesRequest temperature(Object temperature) {
-    this.temperature = temperature;
+  public UpdateExistingEntityAttributesRequest plate(String plate) {
+    this.plate = plate;
     return this;
   }
+
 
    /**
    * 
    * @return temperature
   **/
-  @ApiModelProperty(example = "{\"value\":25.5}", required = true, value = "")
-  public Object getTemperature() {
-    return temperature;
+  @ApiModelProperty(example = "{\"value\":000AAA}", required = true, value = "")
+  public String getPlate() {
+    return plate;
   }
 
-  public void setTemperature(Object temperature) {
-    this.temperature = temperature;
+  public void setPlate(String plate) {
+    this.plate = plate;
   }
 
-  public UpdateExistingEntityAttributesRequest seatNumber(Object seatNumber) {
-    this.seatNumber = seatNumber;
-    return this;
-  }
-
-   /**
-   * 
-   * @return seatNumber
-  **/
-  @ApiModelProperty(example = "{\"value\":6}", required = true, value = "")
-  public Object getSeatNumber() {
-    return seatNumber;
-  }
-
-  public void setSeatNumber(Object seatNumber) {
-    this.seatNumber = seatNumber;
-  }
 
 
   @Override
@@ -81,13 +62,12 @@ public class UpdateExistingEntityAttributesRequest {
       return false;
     }
     UpdateExistingEntityAttributesRequest updateExistingEntityAttributesRequest = (UpdateExistingEntityAttributesRequest) o;
-    return Objects.equals(this.temperature, updateExistingEntityAttributesRequest.temperature) &&
-        Objects.equals(this.seatNumber, updateExistingEntityAttributesRequest.seatNumber);
+    return Objects.equals(this.plate, updateExistingEntityAttributesRequest.plate);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(temperature, seatNumber);
+    return Objects.hash(plate);
   }
 
 
@@ -96,8 +76,7 @@ public class UpdateExistingEntityAttributesRequest {
     StringBuilder sb = new StringBuilder();
     sb.append("class UpdateExistingEntityAttributesRequest {\n");
     
-    sb.append("    temperature: ").append(toIndentedString(temperature)).append("\n");
-    sb.append("    seatNumber: ").append(toIndentedString(seatNumber)).append("\n");
+    sb.append("    plate: ").append(toIndentedString(plate)).append("\n");
     sb.append("}");
     return sb.toString();
   }

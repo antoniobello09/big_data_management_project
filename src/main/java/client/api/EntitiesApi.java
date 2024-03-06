@@ -85,6 +85,7 @@ public class EntitiesApi {
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
         if (contentType != null)
         localVarHeaderParams.put("Content-Type", apiClient.parameterToString(contentType));
+        
 
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
